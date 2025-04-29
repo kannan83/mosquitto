@@ -104,6 +104,47 @@ static int get_time(struct tm **ti)
 	return 0;
 }
 
+static int get_time_with_millisec(struct tm **ti, long *ns)
+{
+#ifdef WIN32
+	SYSTEMTIME st;
+#elif defined(__APPLE__)
+	struct timeval tv;
+#else
+	struct timespec ts;
+#endif
+	time_t s;
+
+#ifdef WIN32
+	s = time(NULL);
+
+	GetLocalTime(&st);
+	*ns = st.wMilliseconds*1000000L;
+#elif defined(__APPLE__)
+	gettimeofday(&tv, NULL);
+	s = tv.tv_sec;
+	*ns = tv.tv_usec*1000;
+#else
+	if(clock_gettime(CLOCK_REALTIME, &ts) != 0){
+		//err_printf(&cfg, "Error obtaining system time.\n");
+		fprintf(stderr, "Error obtaining clock_gettime time.\n");
+		return 1;
+	}
+	s = ts.tv_sec;
+	*ns = ts.tv_nsec;
+#endif
+
+	*ti = localtime(&s);
+	if(!(*ti)){
+		//err_printf(&cfg, "Error obtaining system time.\n");
+		fprintf(stderr, "Error obtaining system time.\n");
+		return 1;
+	}
+
+	return 0;
+}
+
+
 
 int log__init(struct mosquitto__config *config)
 {
@@ -199,6 +240,7 @@ static int log__vprintf(unsigned int priority, const char *fmt, va_list va)
 	int syslog_priority;
 	char log_line[1000];
 	size_t log_line_pos;
+	long ns = 0;
 #ifdef WIN32
 	char *sp;
 #endif
@@ -291,12 +333,18 @@ static int log__vprintf(unsigned int priority, const char *fmt, va_list va)
 		if(log_timestamp){
 			if(log_timestamp_format){
 				struct tm *ti = NULL;
-				get_time(&ti);
-				log_line_pos = strftime(log_line, sizeof(log_line), log_timestamp_format, ti);
+				char time_buf[32];
+				
+				//get_time(&ti);
+				get_time_with_millisec(&ti, &ns);
+				int millisec = (int)(ns / 1000000);
+				//log_line_pos = strftime(log_line, sizeof(log_line), log_timestamp_format, ti);
+				strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", ti);
+				log_line_pos = (size_t)snprintf(log_line, sizeof(log_line), "%s.%03d", time_buf, millisec);
 				if(log_line_pos == 0){
 					log_line_pos = (size_t)snprintf(log_line, sizeof(log_line), "Time error");
-				}
-			}else{
+				} 
+			} else {
 				log_line_pos = (size_t)snprintf(log_line, sizeof(log_line), "%" PRIu64, (uint64_t)db.now_real_s);
 			}
 			if(log_line_pos < sizeof(log_line)-3){
