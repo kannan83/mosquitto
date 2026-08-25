@@ -35,7 +35,8 @@ apt-get update && apt-get install -y \
 	libz-dev \
 	make \
 	ninja-build \
-	pkg-config
+	pkg-config \
+	uthash-dev
 git clone https://github.com/ralight/cJSON ${SRC}/cJSON
 git clone https://github.com/ralight/mallocfail ${SRC}/mallocfail
 git clone https://github.com/ianlancetaylor/libbacktrace ${SRC}/libbacktrace
