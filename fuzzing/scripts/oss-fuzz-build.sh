@@ -34,6 +34,11 @@ cmake \
 make -j $(nproc)
 make install
 
+cd ${SRC}/libbacktrace
+./configure
+make -j $(nproc)
+make install
+
 cd ${SRC}/mallocfail
 cmake -B build -S .
 cmake --build build

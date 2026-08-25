@@ -27,7 +27,6 @@ export CXX=clang++
 apt-get update && apt-get install -y \
 	cmake \
 	libargon2-dev \
-	libbacktrace-dev \
 	libedit-dev \
 	liblzma-dev \
 	libmicrohttpd-dev \
@@ -39,6 +38,7 @@ apt-get update && apt-get install -y \
 	pkg-config
 git clone https://github.com/ralight/cJSON ${SRC}/cJSON
 git clone https://github.com/ralight/mallocfail ${SRC}/mallocfail
+git clone https://github.com/ianlancetaylor/libbacktrace ${SRC}/libbacktrace
 
 # If building outside of oss-fuzz, we need LPM
 if [ ! -d ${SRC}/LPM ]; then
