@@ -27,6 +27,7 @@ export CXX=clang++
 apt-get update && apt-get install -y \
 	cmake \
 	libargon2-dev \
+	libbacktrace-dev \
 	libedit-dev \
 	liblzma-dev \
 	libmicrohttpd-dev \
